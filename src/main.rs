@@ -1,11 +1,48 @@
 use std::process::{Command, exit};
-use std::io::{self, Write};
+use std::io::{self, Write}; // For user input
+
+fn main() {
+    // Ensure the branch is named main
+    let check_branch_command = Command::new("git")
+        .arg("rev-parse")
+        .arg("--abbrev-ref")
+        .arg("HEAD")
+        .output()
+        .expect("Failed to check current branch");
+
+    let current_branch = String::from_utf8_lossy(&check_branch_command.stdout).trim().to_string();
+
+    // If the current branch is not 'main', create it
+    if current_branch != "main" {
+        if current_branch == "HEAD" {
+            // If in detached HEAD state, create the main branch
+            let create_branch_command = Command::new("git")
+                .arg("checkout")
+                .arg("-b")
+                .arg("main")
+                .output()
+                .expect("Failed to create main branch");
+
+            if !create_branch_command.status.success() {
+                eprintln!("Error: Failed to create 'main' branch.");
+                exit(1);
+            }
+        } else {
+            println!("Warning: Current branch is '{}' instead of 'main'.", current_branch);
+            println!("Please switch to 'main' or create it if it doesn't exist.");
+            exit(1);
+        }
+    }
+
+    // Proceed to update, commit, and push changes
+    update_commit_push();
+}
 
 fn update_commit_push() {
     // Command 1: Add all files recursively to git repo
     let add_command = Command::new("git")
         .arg("add")
-        .arg(".")
+        .arg("-A")
         .output()
         .expect("Failed to execute git add command");
 
@@ -26,7 +63,7 @@ fn update_commit_push() {
         .expect("Failed to execute git commit command");
 
     if !commit_command.status.success() {
-        eprintln!("Error: Failed to commit changes.");
+        eprintln!("Error: Failed to commit changes. Check if there are any changes to commit.");
         exit(1);
     }
 
@@ -39,7 +76,7 @@ fn update_commit_push() {
         .expect("Failed to execute git push command");
 
     if !push_command.status.success() {
-        eprintln!("Error: Failed to push changes to remote.");
+        eprintln!("Error: Failed to push changes to remote. Ensure you have a remote origin set.");
         exit(1);
     }
 
@@ -56,68 +93,4 @@ fn get_commit_message() -> String {
         .expect("Failed to read line");
 
     commit_message.trim().to_string() // Trim whitespace and return
-}
-
-fn main() {
-    // Check if we are in a Git repository
-    let check_git_command = Command::new("git")
-        .arg("rev-parse")
-        .arg("--is-inside-work-tree")
-        .output();
-
-    if let Err(_) = check_git_command {
-        eprintln!("Error: Not in a Git repository. Please initialize a repository first.");
-        exit(1);
-    }
-
-    // Ensure the branch is named main
-    let check_branch_command = Command::new("git")
-        .arg("rev-parse")
-        .arg("--abbrev-ref")
-        .arg("HEAD")
-        .output()
-        .expect("Failed to check current branch");
-
-    let current_branch = String::from_utf8_lossy(&check_branch_command.stdout).trim().to_string();
-
-    if current_branch != "main" {
-        println!("Warning: Current branch is '{}' instead of 'main'.", current_branch);
-        println!("Please switch to 'main' or create it if it doesn't exist.");
-        exit(1);
-    }
-
-    // Optional: Check if remote 'origin' exists, and prompt for URL if not
-    let remote_check_command = Command::new("git")
-        .arg("remote")
-        .arg("-v")
-        .output()
-        .expect("Failed to check for remotes");
-
-    let remote_output = String::from_utf8_lossy(&remote_check_command.stdout);
-
-    if !remote_output.contains("origin") {
-        println!("No remote 'origin' found.");
-        print!("Please enter the remote repository URL: ");
-        io::stdout().flush().unwrap(); // Ensure prompt is printed
-
-        let mut remote_url = String::new();
-        io::stdin()
-            .read_line(&mut remote_url)
-            .expect("Failed to read line");
-        
-        let add_remote_command = Command::new("git")
-            .arg("remote")
-            .arg("add")
-            .arg("origin")
-            .arg(remote_url.trim())
-            .output()
-            .expect("Failed to add remote");
-
-        if !add_remote_command.status.success() {
-            eprintln!("Error: Failed to add remote origin.");
-            exit(1);
-        }
-    }
-
-    update_commit_push();
 }
