@@ -1,8 +1,7 @@
 use std::process::{Command, exit};
-use std::io::{self, Write}; // For user input
+use std::io::{self, Write};
 
 fn main() {
-    // Ensure the branch is named main
     let check_branch_command = Command::new("git")
         .arg("rev-parse")
         .arg("--abbrev-ref")
@@ -12,10 +11,8 @@ fn main() {
 
     let current_branch = String::from_utf8_lossy(&check_branch_command.stdout).trim().to_string();
 
-    // If the current branch is not 'main', create it
     if current_branch != "main" {
         if current_branch == "HEAD" {
-            // If in detached HEAD state, create the main branch
             let create_branch_command = Command::new("git")
                 .arg("checkout")
                 .arg("-b")
@@ -34,15 +31,13 @@ fn main() {
         }
     }
 
-    // Proceed to update, commit, and push changes
     update_commit_push();
 }
 
 fn update_commit_push() {
-    // Command 1: Add all files recursively to git repo
     let add_command = Command::new("git")
         .arg("add")
-        .arg("-A")
+        .arg(".")
         .output()
         .expect("Failed to execute git add command");
 
@@ -51,10 +46,8 @@ fn update_commit_push() {
         exit(1);
     }
 
-    // Get commit message from user
     let commit_message = get_commit_message();
 
-    // Command 2: Commit all changes with user-provided message
     let commit_command = Command::new("git")
         .arg("commit")
         .arg("-m")
@@ -67,11 +60,10 @@ fn update_commit_push() {
         exit(1);
     }
 
-    // Command 3: Push to remote (origin main)
     let push_command = Command::new("git")
         .arg("push")
         .arg("origin")
-        .arg("main") // Change from "master" to "main"
+        .arg("main")
         .output()
         .expect("Failed to execute git push command");
 
@@ -85,12 +77,12 @@ fn update_commit_push() {
 
 fn get_commit_message() -> String {
     print!("Enter commit message: ");
-    io::stdout().flush().unwrap(); // Ensure prompt is printed
+    io::stdout().flush().unwrap();
 
     let mut commit_message = String::new();
     io::stdin()
         .read_line(&mut commit_message)
         .expect("Failed to read line");
 
-    commit_message.trim().to_string() // Trim whitespace and return
+    commit_message.trim().to_string()
 }
