@@ -25,7 +25,7 @@ cargo install --path <your-path-of this-project>
     
 ## Example
 
-![alt text](demo/img.png)
+![alt text](https://drive.google.com/file/d/1Y5eOYu9T5OTCsfTSjnQHB2PIRbfgUtAt/view?usp=sharing)
 
 Change the name of the command if you want Cargo.toml.
 (I have set it to git-auto)
