@@ -1,9 +1,10 @@
 [package]
-name = "git-auto"
+name = "git-auto" #change the name to have your custom command
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 
 names = "0.14.0"
+
 
