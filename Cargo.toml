@@ -1,6 +1,9 @@
 [package]
-name = "git-automation"
+name = "git-auto"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+
+names = "0.14.0"
+
